@@ -75,7 +75,7 @@
         messageDiv.innerText = "";
 
         try {
-          const response = await axios.post("http://localhost:3000/signup", {
+          const response = await axios.post("http://localhost:3000/auth/signup", {
             email,
             password,
             name,
@@ -94,21 +94,20 @@
       async function signin() {
         const email = document.getElementById("signin-email").value;
         const password = document.getElementById("signin-password").value;
-        const response = await axios.post("http://localhost:3000/signin", {
+        const response = await axios.post("http://localhost:3000/auth/signin", {
           email,
           password,
         });
         const token = response.data.token;
         localStorage.setItem("token", token);
         if (token) {
-          alert("You're signed in.");
           getUserInformation();
         }
       }
 
       async function getUserInformation() {
         try {
-          const response = await axios.get("http://localhost:3000/me", {
+          const response = await axios.get("http://localhost:3000/auth/me", {
             headers: {
               token: localStorage.getItem("token"),
             },

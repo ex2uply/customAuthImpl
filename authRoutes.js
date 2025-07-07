@@ -1,19 +1,9 @@
 const express = require("express");
 const jwt = require("jsonwebtoken");
-const cors = require("cors");
-const mongoose = require("mongoose");
-const { UserModel, TodoModel } = require("./db");
+const { UserModel } = require("./db");
+const router = express.Router();
 
 const JWT_SECRET = "nofuckingway";
-
-const app = express();
-
-mongoose.connect(
-  "mongodb+srv://adityakumarso2003:12345678910@cluster0.ngahshr.mongodb.net/todo-app-db"
-);
-
-app.use(express.json());
-app.use(cors());
 
 function loggedInCheckerMiddleware(req, res, next) {
   const token = req.headers.token;
@@ -34,13 +24,8 @@ function loggedInCheckerMiddleware(req, res, next) {
   }
 }
 
-function logger(req, res, next) {
-  console.log(req.method + "request came");
-  next();
-}
-app.use(logger);
 
-app.post("/signup", async (req, res) => {
+router.post("/signup", async (req, res) => {
   let email = req.body.email;
   let password = req.body.password;
   let name = req.body.name;
@@ -56,7 +41,7 @@ app.post("/signup", async (req, res) => {
     });
   } catch (err) {
     if (err.code === 11000) {
-      // Duplicate key error (email already exists)
+      // Duplicate key error 
       res.status(400).json({
         error: "Email already in use.",
       });
@@ -64,11 +49,12 @@ app.post("/signup", async (req, res) => {
       res.status(500).json({
         error: "Internal server error.",
       });
+      console.log(err);
     }
   }
 });
 
-app.post("/signin", async (req, res) => {
+router.post("/signin", async (req, res) => {
   let email = req.body.email;
   let password = req.body.password;
 
@@ -96,9 +82,7 @@ app.post("/signin", async (req, res) => {
   }
 });
 
-app.use(loggedInCheckerMiddleware);
-
-app.get("/me", async (req,res)=>{
+router.get("/me",loggedInCheckerMiddleware ,async (req,res)=>{
    let id = req.id;
 
    let user = await UserModel.findById(id);
@@ -108,35 +92,5 @@ app.get("/me", async (req,res)=>{
    });
 })
 
-app.post("/todo", async (req, res) => {
-  let title = req.body.title;
-  let done = req.body.done;
-  let id = req.id;
 
-  await TodoModel.create({
-    title: title,
-    done: done,
-    userId: id,
-  });
-
-  res.send({
-    message: "Saved",
-  });
-});
-
-app.get("/todos", async (req, res) => {
-  let id = req.id;
-  try {
-    const todos = await TodoModel.find({
-      userId: id,
-    });
-    res.json(todos);
-  } catch (e) {
-    res.status(500).json({
-      error: e,
-    });
-  }
-});
-app.listen(3000);
-
-
+module.exports = router;
